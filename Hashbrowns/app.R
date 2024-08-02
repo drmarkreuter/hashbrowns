@@ -63,68 +63,82 @@ rainbowPrefix <- function(prefix,string,algo) {
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
-
-    # Application title
-    titlePanel("Hashbrowns"),
-
-    # Sidebar with a slider input for number of bins 
-    sidebarLayout(
-        sidebarPanel(
-          #radio buttons here
-          radioButtons("hashType",
-                       "Hash Type",
-                       c("md5" = "md5",
-                         "sha1" = "sha1",
-                         "sha256" = "sha256",
-                         "sha512" = "sha512")
-          ),
-          textInput("inputString",
-                    "string to hash",
-                    value = "elephant and castle",
-                    width = NULL,
-                    placeholder = NULL),
-          actionButton("hashGo",
-                       "Create",
-                       width = 150),
-          
-          hr(),
-          
-          fileInput(
-            inputId = "loadText",
-            label = "Upload text file",
-            multiple = FALSE,
-            accept = ".txt",
-            width = 250,
-            placeholder = ""),
-          actionButton("hashFileGo",
-                       "Create",
-                       width = 150),
-          
-          hr(),
-        ),
-
-        
-        mainPanel(
-           #output here
-          uiOutput("inputString"),
-          uiOutput("simpleHash"),
-          uiOutput("rainbowTitle"),
-          dataTableOutput("rainbow"),
-          hr(),
-          uiOutput("inputStringsFile"),
-          uiOutput("simpleHashsFile"),
-          uiOutput("rainbowTitleFile"),
-          dataTableOutput("rainbowFile"),
-          downloadButton("downloadRainbow",
-                         label = "Download Rainbow table"),
-          hr()
-        )
+  
+  # Application title
+  titlePanel("Hashbrowns"),
+  
+  # Sidebar with a slider input for number of bins 
+  sidebarLayout(
+    sidebarPanel(
+      #radio buttons here
+      radioButtons("hashType",
+                   "Hash Type",
+                   c("md5" = "md5",
+                     "sha1" = "sha1",
+                     "sha256" = "sha256",
+                     "sha512" = "sha512")
+      ),
+      textInput("inputString",
+                "string to hash",
+                value = "elephant and castle",
+                width = NULL,
+                placeholder = NULL),
+      actionButton("hashGo",
+                   "Create",
+                   width = 150),
+      
+      hr(),
+      
+      fileInput(
+        inputId = "loadText",
+        label = "Upload text file",
+        multiple = FALSE,
+        accept = ".txt",
+        width = 250,
+        placeholder = ""),
+      actionButton("hashFileGo",
+                   "Create",
+                   width = 150),
+      
+      hr(),
+      textInput("prefixURI",
+                "URI prefix",
+                value = "https://example.com/",
+                width = NULL,
+                placeholder = NULL),
+      actionButton("hashPrefixGo",
+                   "URI + Hash",
+                   width = 150),
+      hr(),
+    ),
+    
+    
+    mainPanel(
+      #output here
+      uiOutput("inputString"),
+      uiOutput("simpleHash"),
+      uiOutput("rainbowTitle"),
+      dataTableOutput("rainbow"),
+      hr(),
+      uiOutput("inputStringsFile"),
+      uiOutput("simpleHashsFile"),
+      uiOutput("rainbowTitleFile"),
+      dataTableOutput("rainbowFile"),
+      downloadButton("downloadRainbow",
+                     label = "Download Rainbow table"),
+      hr(),
+      uiOutput("inputStringPrefix"),
+      uiOutput("simpleHashPrefix"),
+      dataTableOutput("rainbowPrefixTable"),
+      #dataTableOutput("rainbow"),
+      hr()
     )
+  )
 )
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-
+  
   observeEvent(input$hashGo,{
     stringInput <- input$inputString
     print(stringInput)
@@ -149,7 +163,7 @@ server <- function(input, output) {
     output$rainbow <- renderDT({
       hash.df
     })
-  
+    
     
   })
   
@@ -193,7 +207,7 @@ server <- function(input, output) {
       fileHashDf <- rbind(fileHashDf,
                           tempDf)
     }
-
+    
     output$inputStringsFile <- renderUI({
       HTML(paste0('<h5>',
                   stringVec,
@@ -205,7 +219,7 @@ server <- function(input, output) {
                   hashVec,
                   '</h4>'))
     })
-
+    
     output$rainbowFile <- renderDT({
       fileHashDf
     })
@@ -224,7 +238,38 @@ server <- function(input, output) {
     
   })
   
-
+  ##URI prefix
+  observeEvent(input$hashPrefixGo,{
+    stringInput <- input$inputString
+    print(stringInput)
+    algo <- input$hashType
+    print(algo)
+    prefix <- input$prefixURI
+    print(prefix)
+    prefixhash <- hashbrownPrefix(prefix,stringInput,algo)
+    print(prefixhash)
+    
+    prefixhash.df <- rainbowPrefix(prefix,stringInput,algo)
+    print(prefixhash.df)
+    
+    output$inputStringPrefix <- renderUI({
+      HTML(paste0('<h4>',
+                  paste0(prefix,stringInput),
+                  '</h4>'))
+    })
+    
+    output$simpleHashPrefix <- renderUI({
+      HTML(paste0('<h3>',
+                  prefixhash,
+                  '</h3>'))
+    })
+    
+    output$rainbowPrefixTable <- renderDT({
+      prefixhash.df
+    })
+    
+  })
+  
 }
 
 # Run the application 
