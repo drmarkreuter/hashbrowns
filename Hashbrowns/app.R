@@ -3,6 +3,7 @@
 #Mark Reuter
 #August 2024
 #contact mark.reuter@googlemail.com
+#git https://github.com/drmarkreuter/hashbrowns/tree/main
 
 library(shiny)
 library(digest) #required for hashing
@@ -114,6 +115,8 @@ ui <- fluidPage(
           uiOutput("simpleHashsFile"),
           uiOutput("rainbowTitleFile"),
           dataTableOutput("rainbowFile"),
+          downloadButton("downloadRainbow",
+                         label = "Download Rainbow table"),
           hr()
         )
     )
@@ -207,7 +210,20 @@ server <- function(input, output) {
       fileHashDf
     })
     
+    ##download handler
+    output$downloadRainbow <- downloadHandler(
+      filename = function() {
+        paste0('rainbow_',Sys.Date(),".csv")
+      },
+      content = function(file) {
+        write.csv(fileHashDf,
+                  file,
+                  row.names = FALSE)
+      }
+    )
+    
   })
+  
 
 }
 
