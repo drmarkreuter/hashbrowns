@@ -6,6 +6,7 @@
 #git https://github.com/drmarkreuter/hashbrowns/tree/main
 
 library(shiny)
+library(shinythemes)
 library(digest) #required for hashing
 library(DT) #required for table output
 
@@ -61,8 +62,18 @@ rainbowPrefix <- function(prefix,string,algo) {
   return(rainbow.df)
 }
 
+##function to return random string of letters + numbers
+randString <- function(){
+  char.vec <- c(LETTERS,letters,seq(0,9,1))
+  r <- paste0(sample(char.vec,
+                     16,
+                     replace = FALSE),
+              collapse = "")
+  return(r)
+}
+
 # Define UI for application that draws a histogram
-ui <- fluidPage(
+ui <- fluidPage(theme = shinytheme("cyborg"),
   
   # Application title
   titlePanel("Hashbrowns"),
@@ -114,6 +125,10 @@ ui <- fluidPage(
                    "URI + Hash (from file)",
                    width = 200),
       hr(),
+      actionButton("randomHash",
+                   "Random hash",
+                   width = 200),
+      hr()
     ),
     
     
@@ -143,6 +158,9 @@ ui <- fluidPage(
       downloadButton("downloadPrefixRainbow",
                      label = "Download Prefix Rainbow table"),
       hr(),
+      uiOutput("randomTitle"),
+      uiOutput("randomHash"),
+      hr()
       
       
     )
@@ -354,6 +372,27 @@ server <- function(input, output) {
     
   })
   
+  output$randomTitle <- renderUI({
+    HTML(paste0('<h2>',
+                "Random Hash",
+                '</h2>'))
+  })
+  
+  observeEvent(input$randomHash,{
+    inputString <- randString()
+    outputHash <- hashbrown(inputString,input$hashType)
+    
+    output$randomHash <- renderUI(
+      HTML(paste0('<h4>',
+                  inputString,
+                  "<br>",
+                  outputHash,
+                  '</h4>')
+           )
+    )
+    
+  })
+  
 }
 
 # Run the application 
@@ -362,4 +401,5 @@ shinyApp(ui = ui, server = server)
 
 
 ##multiverse internet
+##to do - generate random
 
