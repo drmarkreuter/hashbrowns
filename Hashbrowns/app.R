@@ -109,12 +109,17 @@ ui <- fluidPage(
       actionButton("hashPrefixGo",
                    "URI + Hash",
                    width = 150),
+      
+      actionButton("hashFilePrefixGo",
+                   "URI + Hash (from file)",
+                   width = 200),
       hr(),
     ),
     
     
     mainPanel(
       #output here
+      uiOutput("hash"),
       uiOutput("inputString"),
       uiOutput("simpleHash"),
       uiOutput("rainbowTitle"),
@@ -130,8 +135,16 @@ ui <- fluidPage(
       uiOutput("inputStringPrefix"),
       uiOutput("simpleHashPrefix"),
       dataTableOutput("rainbowPrefixTable"),
-      #dataTableOutput("rainbow"),
-      hr()
+      
+      hr(),
+      uiOutput("inputStringsPrefixFile"),
+      uiOutput("simpleHashsPrefixFile"),
+      dataTableOutput("rainbowPrefixFile"),
+      downloadButton("downloadPrefixRainbow",
+                     label = "Download Prefix Rainbow table"),
+      hr(),
+      
+      
     )
   )
 )
@@ -165,6 +178,12 @@ server <- function(input, output) {
     })
     
     
+  })
+  
+  output$hash <- renderUI({
+    HTML(paste0('<h2>',
+                "Hash",
+                '</h2>'))
   })
   
   output$rainbowTitle <- renderUI({
@@ -254,7 +273,7 @@ server <- function(input, output) {
     
     output$inputStringPrefix <- renderUI({
       HTML(paste0('<h4>',
-                  paste0(prefix,stringInput),
+                  paste0(prefix,URLencode(stringInput)),
                   '</h4>'))
     })
     
@@ -270,7 +289,77 @@ server <- function(input, output) {
     
   })
   
+  ##file + prefix
+  observeEvent(input$hashFilePrefixGo,{
+    stringPrefixVec <- vector()
+    hashPrefixVec <- vector()
+    prefix <- input$prefixURI
+    algo <- input$hashType
+    print(algo)
+    
+    uploadPath <- input$loadText$datapath
+    
+    uploadContent <- read.csv(uploadPath,header = FALSE)
+    print(uploadContent)
+    for (i in 1:nrow(uploadContent)){
+      stringPrefixVec[i] <- paste0(prefix,
+                                   URLencode(uploadContent[i,1])
+                                   )
+      hashPrefixVec[i] <- hashbrownPrefix(prefix,uploadContent[i,1],algo)
+    }
+    print(stringPrefixVec)
+    print(hashPrefixVec)
+    
+    filehashPrefixDf <- data.frame(
+      prefix=as.character(),
+      string=as.character(),
+      hash=as.character(),
+      uri=as.character(),
+      algo=as.character(),
+      stringsAsFactors = FALSE)
+      
+    for (i in 1:nrow(uploadContent)){
+      tempPrefixDf <- rainbowPrefix(prefix,uploadContent[i,1],algo)
+      filehashPrefixDf <- rbind(filehashPrefixDf,
+                                tempPrefixDf)
+    }
+    
+    output$inputStringsPrefixFile <- renderUI({
+      HTML(paste0('<h5>',
+                  stringPrefixVec,
+                  '</h5>'))
+    })
+    
+    output$simpleHashsPrefixFile <- renderUI({
+      HTML(paste0('<h4>',
+                  hashPrefixVec,
+                  '</h4>'))
+    })
+    
+    output$rainbowPrefixFile <- renderDT({
+      filehashPrefixDf
+    })
+    
+    ##download handler
+    output$downloadPrefixRainbow <- downloadHandler(
+      filename = function() {
+        paste0('rainbow_prefix_',Sys.Date(),".csv")
+      },
+      content = function(file) {
+        write.csv(filehashPrefixDf,
+                  file,
+                  row.names = FALSE)
+      }
+    )
+    
+  })
+  
 }
 
 # Run the application 
 shinyApp(ui = ui, server = server)
+
+
+
+##multiverse internet
+
