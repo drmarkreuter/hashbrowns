@@ -10,6 +10,7 @@ library(shinythemes)
 library(digest) #required for hashing
 library(DT) #required for table output
 
+#### functions ####
 hashbrown <- function(string,algo) {
   hash = digest(string,algo = algo,
                 errormode = "warn")
@@ -72,13 +73,11 @@ randString <- function(){
   return(r)
 }
 
-# Define UI for application that draws a histogram
+#### UI ####
 ui <- fluidPage(theme = shinytheme("cyborg"),
   
-  # Application title
   titlePanel("Hashbrowns"),
   
-  # Sidebar with a slider input for number of bins 
   sidebarLayout(
     sidebarPanel(
       #radio buttons here
@@ -131,9 +130,9 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
       hr()
     ),
     
-    
+    #### main panel ####
     mainPanel(
-      #output here
+    
       uiOutput("hash"),
       uiOutput("inputString"),
       uiOutput("simpleHash"),
@@ -167,7 +166,7 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
   )
 )
 
-# Define server logic required to draw a histogram
+#### server ####
 server <- function(input, output) {
   
   observeEvent(input$hashGo,{
@@ -398,8 +397,9 @@ server <- function(input, output) {
 # Run the application 
 shinyApp(ui = ui, server = server)
 
-
+##https://abominable.shinyapps.io/Hashbrowns/
 
 ##multiverse internet
-##to do - generate random
+##to do - salt and pepper
+
 
